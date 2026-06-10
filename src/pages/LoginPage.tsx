@@ -63,7 +63,7 @@ export function LoginPage() {
           <div className="auth-hero-icon">
             <HeartPulse size={28} strokeWidth={2.2} />
           </div>
-          <h1 className="auth-hero-title">家庭医生</h1>
+          <h1 className="auth-hero-title">家庭1111医生</h1>
           <p className="auth-hero-sub">登录后开启健康档案与专属服务</p>
         </div>
 
