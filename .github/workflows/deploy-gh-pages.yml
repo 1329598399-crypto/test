@@ -10,17 +10,18 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # 强制 Actions 立即使用 Node.js 24（避免 Node 20 弃用问题）
+    # 可选：让 Actions 的 JavaScript actions 立即使用 Node.js 24（避免未来弃用问题）
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Print Node / npm versions (debug)
+      - name: Setup Node.js 20 and print versions (debug)
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
       - run: |
           echo "== node & npm versions =="
@@ -29,7 +30,6 @@ jobs:
           echo "=========================="
 
       - name: Install dependencies (try npm ci, fallback to npm install)
-        # 先尝试干净安装（ci），若因 lockfile / npm 版本问题失败则回退到更宽容的 npm install
         run: |
           set -e
           echo "Trying npm ci..."
@@ -48,5 +48,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          # 可选：指定发布分支（默认 gh-pages）
           # publish_branch: gh-pages
