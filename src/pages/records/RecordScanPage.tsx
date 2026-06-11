@@ -1,9 +1,9 @@
 import { Camera, Settings, SlidersHorizontal } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { MobileShell } from '../../components/layout/MobileShell'
 import { getHealthRecordsConfig } from '../../data/healthRecordsLoader'
 import { SCAN_MOCK_RESULTS } from '../../data/healthVitalsData'
+import { usePhotoScan } from '../../hooks/usePhotoScan'
 import { useAppStore } from '../../store/useAppStore'
 
 type ScanType = 'diet' | 'medication'
@@ -17,32 +17,11 @@ export function RecordScanPage() {
   const showToast = useAppStore((s) => s.showToast)
   const config = getHealthRecordsConfig()
 
-  const [phase, setPhase] = useState<'idle' | 'scanning' | 'result'>('idle')
-  const [progress, setProgress] = useState(0)
+  const { phase, progress, startScan, resetScan } = usePhotoScan()
 
   const title = type === 'diet' ? '饮食识别' : '用药识别'
   const hint = type === 'diet' ? config.scanDietHint : config.scanMedHint
   const mock = SCAN_MOCK_RESULTS[type]
-
-  useEffect(() => {
-    if (phase !== 'scanning') return
-    const t = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) {
-          clearInterval(t)
-          setPhase('result')
-          return 100
-        }
-        return p + 8
-      })
-    }, 120)
-    return () => clearInterval(t)
-  }, [phase])
-
-  const startScan = () => {
-    setProgress(0)
-    setPhase('scanning')
-  }
 
   const save = () => {
     addRecord(type, mock.summary)
@@ -115,7 +94,7 @@ export function RecordScanPage() {
             <button type="button" className="hr-scan-save" onClick={save}>
               保存到健康记录
             </button>
-            <button type="button" className="hr-scan-retry" onClick={() => setPhase('idle')}>
+            <button type="button" className="hr-scan-retry" onClick={resetScan}>
               重新拍摄
             </button>
           </div>

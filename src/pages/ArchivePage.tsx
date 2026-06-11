@@ -23,6 +23,7 @@ import { clsx } from 'clsx'
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ArchiveAuthManagement } from '../components/archive/ArchiveAuthManagement'
+import { ArchiveFamilyDynamics } from '../components/archive/ArchiveFamilyDynamics'
 import { AddFamilyMemberFlow } from '../components/family/AddFamilyMemberFlow'
 import {
   AnalysisSection,
@@ -65,7 +66,7 @@ import {
   type HubReturnState,
   type HubScrollTarget,
 } from '../lib/hubScroll'
-import { useAppStore, useFamilyMembers } from '../store/useAppStore'
+import { useAppStore, useFamilyMembers, useRoleData } from '../store/useAppStore'
 import { toArchivePersonPill } from '../lib/familyMemberService'
 
 const chipToneClass: Record<ArchiveChipTone, string> = {
@@ -235,6 +236,7 @@ function ArchiveHub() {
   const generateTempAuthSession = useAppStore((s) => s.generateTempAuthSession)
   const showToast = useAppStore((s) => s.showToast)
   const familyMembers = useFamilyMembers()
+  const roleData = useRoleData()
   const [qrOpen, setQrOpen] = useState(false)
   const [addFamilyOpen, setAddFamilyOpen] = useState(false)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
@@ -538,6 +540,8 @@ function ArchiveHub() {
               </button>
             ))}
           </div>
+
+          <ArchiveFamilyDynamics items={roleData.familyDynamics} />
 
           {isMember && (
             <button

@@ -11,6 +11,7 @@ import {
   type ActivityMedia,
   getActivityById,
 } from '../data/activitiesCatalog'
+import { activityCoverPaths } from '../data/activityCoverAssets'
 import { getHomeFeed } from '../data/homeFeedLoader'
 import {
   healthReports,
@@ -88,6 +89,10 @@ export function ActivityCover({ media, className = '' }: { media?: ActivityMedia
       src={media.url}
       alt={media.name || '活动封面'}
       className={`aspect-[16/9] w-full rounded-2xl object-cover ${className}`}
+      onError={(e) => {
+        e.currentTarget.onerror = null
+        e.currentTarget.src = activityCoverPaths.chronicCare
+      }}
     />
   )
 }

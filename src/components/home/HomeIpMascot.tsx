@@ -1,37 +1,17 @@
-import { Pencil } from 'lucide-react'
+import { Pencil, Zap } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { IpPartnerAvatar } from '../ai/IpPartnerAvatar'
 import { loadAiPartner } from '../../data/aiPartner'
 import type { HomeIpMessage } from '../../data/homeFeedData'
+import { SeaOtterFlat } from './SeaOtterFlat'
 
 interface Props {
   message: HomeIpMessage
+  userName: string
+  dateLabel: string
   onTap?: () => void
 }
 
-const moodClass: Record<HomeIpMessage['mood'], string> = {
-  greet: 'is-mood-greet',
-  remind: 'is-mood-remind',
-  celebrate: 'is-mood-celebrate',
-  think: 'is-mood-think',
-}
-
-function highlightBubbleText(text: string) {
-  const parts = text.split(/(\d+)/)
-  if (parts.length === 1) return text
-  return parts.map((part, i) =>
-    /^\d+$/.test(part) ? (
-      <strong key={i} className="home-ip-highlight-num">
-        {part}
-      </strong>
-    ) : (
-      part
-    ),
-  )
-}
-
-/** 首页气泡仅展示一句短文案，详情由「今日建议」承载 */
 function getSpeechText(message: HomeIpMessage): string {
   const bubble = message.bubble.trim()
   const greeting = message.greeting.trim()
@@ -40,7 +20,7 @@ function getSpeechText(message: HomeIpMessage): string {
   return `${greeting}，${bubble}`
 }
 
-export function HomeIpMascot({ message, onTap }: Props) {
+export function HomeIpMascot({ message, userName, dateLabel, onTap }: Props) {
   const navigate = useNavigate()
   const [partner, setPartner] = useState(() => loadAiPartner())
 
@@ -56,37 +36,51 @@ export function HomeIpMascot({ message, onTap }: Props) {
   }
 
   const speech = getSpeechText(message)
+  const bubbleNav = message.nav ?? '/ai'
+
+  const openBubble = () => navigate(bubbleNav)
+  const openMascot = () => (onTap ? onTap() : navigate('/ai'))
 
   return (
-    <section className={`home-ip-section home-ip-bubble-row ${moodClass[message.mood]}`}>
-      <button
-        type="button"
-        className="home-ip-customize-fab"
-        onClick={openCustomize}
-        aria-label={partner.completed ? `定制 ${partner.name}` : '定制 AI 伙伴'}
-      >
-        <Pencil size={11} />
-        {partner.completed ? partner.name : '定制'}
-      </button>
-
-      <div className="home-ip-bubble-layout home-ip-bubble-layout-centered">
+    <section className="home-ip-hero immersive-inset-top">
+      <div className="home-ip-hero-toolbar">
+        <div className="home-ip-hero-meta">
+          <p className="home-ip-hero-greet">您好，{userName}</p>
+          <p className="home-ip-hero-date">{dateLabel}</p>
+        </div>
         <button
           type="button"
-          className="home-ip-bubble-avatar-hit"
-          onClick={onTap}
-          aria-label="打开小懂 AI"
+          className="home-ip-hero-customize"
+          onClick={openCustomize}
+          aria-label={partner.completed ? `定制 ${partner.name}` : '定制 AI 伙伴'}
         >
-          <div className="home-ip-bubble-avatar-glow" aria-hidden />
-          <IpPartnerAvatar size="lg" variant={partner.avatarVariant} mood={message.mood} />
-          {partner.completed && <span className="home-ip-avatar-name">{partner.name}</span>}
+          <Pencil size={12} />
+          {partner.completed ? partner.name : '定制 IP'}
         </button>
+      </div>
 
-        <button type="button" className="home-ip-speech-hit" onClick={onTap}>
-          <div className="home-ip-speech home-ip-speech-centered">
-            <span className="home-ip-speech-tail" aria-hidden />
-            <p className="home-ip-speech-text">{highlightBubbleText(speech)}</p>
-          </div>
-        </button>
+      <div className="home-ip-scene">
+        <div className="home-ip-scene-inner">
+          <button
+            type="button"
+            className="home-ip-speech-bubble"
+            onClick={openBubble}
+            aria-label={`${speech}，前往相关功能`}
+          >
+            <p className="home-ip-speech-text">{speech}</p>
+          </button>
+
+          <button type="button" className="home-ip-otter-btn" onClick={openMascot} aria-label="打开小懂 AI">
+            <SeaOtterFlat />
+          </button>
+
+          {message.pointsReward ? (
+            <span className="home-ip-points-chip">
+              <Zap size={12} fill="currentColor" />
+              +{message.pointsReward}
+            </span>
+          ) : null}
+        </div>
       </div>
     </section>
   )

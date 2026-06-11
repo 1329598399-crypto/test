@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#dbeafe"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <circle cx="620" cy="120" r="90" fill="#fff" fill-opacity=".25"/>
+  <circle cx="180" cy="340" r="120" fill="#fff" fill-opacity=".15"/>
+  <text x="48" y="380" fill="#fff" font-family="system-ui,sans-serif" font-size="36" font-weight="700">慢病管理营</text>
+  <text x="48" y="420" fill="#e0f2fe" font-family="system-ui,sans-serif" font-size="22">线上直播 · 回放</text>
+</svg>

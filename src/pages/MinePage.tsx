@@ -25,6 +25,12 @@ import { MobileShell } from '../components/layout/MobileShell'
 import { BentoCard } from '../components/ui/BentoCard'
 import { getArchivePct, getPoints, useAppStore, useRoleData } from '../store/useAppStore'
 
+/** 我的页副标题：略压缩文案，便于单行展示 */
+function formatMineServiceMeta(badge: string, serviceDay: number) {
+  const tier = badge.replace(/^单人/, '')
+  return `${tier} · 连续${serviceDay}天`
+}
+
 const memberServices = [
   { icon: MessageCircle, label: '专属顾问', desc: '线上咨询 8:00–21:00', path: '/advisor', memberOnly: true },
   { icon: Stethoscope, label: '随访报告', desc: '月度/季度健康总结', path: '/reports', memberOnly: true },
@@ -101,7 +107,7 @@ export function MinePage() {
               <div className="min-w-0 flex-1">
                 <h2 className="mine-name">{data.userName}</h2>
                 <p className="mine-meta">
-                  {data.badge} · 连续管理 {data.serviceDay} 天
+                  {formatMineServiceMeta(data.badge, data.serviceDay)}
                 </p>
                 {authUser?.phone && (
                   <p className="mine-phone">{maskPhone(authUser.phone)}</p>
@@ -175,7 +181,7 @@ export function MinePage() {
               <div className="min-w-0 flex-1">
                 <h2 className="mine-name">{data.userName}</h2>
                 <p className="mine-meta">
-                  {data.badge} · 连续管理 {data.serviceDay} 天
+                  {formatMineServiceMeta(data.badge, data.serviceDay)}
                 </p>
                 {authUser?.phone && (
                   <p className="mine-phone">{maskPhone(authUser.phone)}</p>

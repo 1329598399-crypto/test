@@ -15,6 +15,8 @@ export interface HomeIpMessage {
   bubble: string
   /** 副文案 / 数据洞察 */
   subline?: string
+  /** 点击气泡跳转路径 */
+  nav?: string
   /** 完成任务可获积分（展示用） */
   pointsReward?: number
 }
@@ -59,6 +61,10 @@ export interface HomeAdvisorProfile {
   online: boolean
   nextAvailable?: string
   team: HomeAdvisorTeamMember[]
+  /** 企微账号（会员展示） */
+  wecomId?: string
+  /** 联系电话（会员展示） */
+  contactPhone?: string
   /** 普通用户看到的升级引导 */
   upgradeHint?: string
 }
@@ -104,11 +110,13 @@ const defaultFeed: Record<Role, HomeFeedPayload> = {
       mood: 'greet',
       greeting: '您好',
       bubble: '有什么健康问题随时问我～',
+      subline: '点气泡可继续对话',
+      nav: '/ai',
     },
     taskCards: [
       {
         id: 'ht-health-bp',
-        title: '今天还没记录血压，抽空测一次吧',
+        title: '提醒我测一次血压 💓',
         source: 'health_data',
         sourceLabel: SOURCE_LABEL.health_data,
         accent: 'blue',
@@ -128,7 +136,7 @@ const defaultFeed: Record<Role, HomeFeedPayload> = {
       },
       {
         id: 'ht-system-ai',
-        title: '试试让小懂帮您记录饮食与运动',
+        title: '帮我记录今天的饮食和运动 🥗',
         source: 'system',
         sourceLabel: SOURCE_LABEL.system,
         accent: 'purple',
@@ -157,6 +165,8 @@ const defaultFeed: Record<Role, HomeFeedPayload> = {
       online: false,
       nextAvailable: '每天 8:00 – 21:00',
       team: [{ name: '小康', role: '顾问助理', initial: '康', online: true }],
+      wecomId: 'health-advisor',
+      contactPhone: '400-888-6688',
       upgradeHint: '开通会员后升级为专属家庭医生团队',
     },
   },
@@ -165,12 +175,15 @@ const defaultFeed: Record<Role, HomeFeedPayload> = {
     ipMessage: {
       mood: 'remind',
       greeting: '建国您好',
-      bubble: '今晚记得测血糖哦～',
+      bubble: '不要忘记记录血压情况哦',
+      subline: '点我继续对话',
+      nav: '/records/form/bp',
+      pointsReward: 10,
     },
     taskCards: [
       {
         id: 'ht-doc-report',
-        title: '张医生：请上传近期体检报告，便于解读面诊',
+        title: '帮我上传近期体检报告，方便医生解读 📋',
         source: 'doctor',
         sourceLabel: SOURCE_LABEL.doctor,
         accent: 'amber',
@@ -179,7 +192,7 @@ const defaultFeed: Record<Role, HomeFeedPayload> = {
       },
       {
         id: 'ht-health-glucose',
-        title: '本周血糖还差 2 次 · 晚间建议餐后 2 小时测量',
+        title: '提醒我今晚餐后 2 小时测血糖 🩸',
         source: 'health_data',
         sourceLabel: SOURCE_LABEL.health_data,
         accent: 'blue',
@@ -189,7 +202,7 @@ const defaultFeed: Record<Role, HomeFeedPayload> = {
       },
       {
         id: 'ht-doc-precheck',
-        title: '张医生团队已标注复查前注意事项，请查看',
+        title: '看看复查前要注意什么 👀',
         source: 'doctor',
         sourceLabel: SOURCE_LABEL.doctor,
         accent: 'green',
@@ -198,7 +211,7 @@ const defaultFeed: Record<Role, HomeFeedPayload> = {
       },
       {
         id: 'ht-doc-recheck',
-        title: '6 月 10 日心内科复查 · 请提前 1 天确认时间',
+        title: '6 月 10 日心内科复查，帮我确认时间 📅',
         source: 'doctor',
         sourceLabel: '复查',
         accent: 'amber',
@@ -223,6 +236,8 @@ const defaultFeed: Record<Role, HomeFeedPayload> = {
         initial: d.initial,
         online: d.online,
       })),
+      wecomId: 'zhangxuee_fd',
+      contactPhone: '138-0000-8802',
     },
   },
 }

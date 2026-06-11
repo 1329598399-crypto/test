@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="1" y1="0" x2="0" y2="1">
+      <stop stop-color="#fdf2f8"/>
+      <stop offset="1" stop-color="#fbcfe8"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <rect x="48" y="48" width="704" height="354" rx="24" fill="#fff" fill-opacity=".35"/>
+  <text x="72" y="400" fill="#9d174d" font-family="system-ui,sans-serif" font-size="28" font-weight="600">往期回顾</text>
+</svg>

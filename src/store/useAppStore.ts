@@ -17,6 +17,7 @@ import { defaultArchiveAuthGrants } from '../data/archiveAuthData'
 import type { AddFamilyMemberInput, FamilyMemberRecord } from '../data/familyMemberData'
 import { defaultFamilyMembersByOwner } from '../data/familyMemberData'
 import type { AuthorizedArchiveSnapshot } from '../data/authorizedArchiveSnapshots'
+import { SCAN_MOCK_RESULTS } from '../data/healthVitalsData'
 import type {
   ArchiveBasicOverride,
   ArchiveDocItem,
@@ -55,8 +56,16 @@ export interface RecordLog {
 }
 
 export interface ChatMessage {
+  id: string
   role: 'user' | 'assistant'
   text: string
+  kind?: 'text' | 'scan-result'
+  scanType?: 'diet' | 'medication'
+  scanSaved?: boolean
+}
+
+function newChatId() {
+  return `cm_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 }
 
 interface AppState {
@@ -104,6 +113,8 @@ interface AppState {
   addRecord: (type: string, summary: string) => void
   completePathNode: (nodeId: string) => void
   sendChat: (text: string) => string
+  sendChatScanResult: (scanType: 'diet' | 'medication') => void
+  saveChatScanResult: (messageId: string) => void
   joinActivity: (id: string) => void
   showToast: (msg: string) => void
   clearToast: () => void
@@ -293,11 +304,48 @@ export const useAppStore = create<AppState>()(
         set((s) => ({
           chatMessages: [
             ...s.chatMessages,
-            { role: 'user', text },
-            { role: 'assistant', text: reply },
+            { id: newChatId(), role: 'user', text, kind: 'text' },
+            { id: newChatId(), role: 'assistant', text: reply, kind: 'text' },
           ],
         }))
         return reply
+      },
+
+      sendChatScanResult: (scanType) => {
+        const mock = SCAN_MOCK_RESULTS[scanType]
+        const userText = scanType === 'diet' ? '[拍照] 食物营养识别' : '[拍照] 药品识别'
+        const assistantText =
+          scanType === 'diet'
+            ? `已识别「${mock.name}」，约 ${SCAN_MOCK_RESULTS.diet.kcal} kcal。详见下方营养卡片。`
+            : `已识别「${mock.name}」。请核对用法，用药请遵医嘱。`
+        set((s) => ({
+          chatMessages: [
+            ...s.chatMessages,
+            { id: newChatId(), role: 'user', text: userText, kind: 'text' },
+            {
+              id: newChatId(),
+              role: 'assistant',
+              text: assistantText,
+              kind: 'scan-result',
+              scanType,
+              scanSaved: false,
+            },
+          ],
+        }))
+      },
+
+      saveChatScanResult: (messageId) => {
+        const msg = get().chatMessages.find((m) => m.id === messageId)
+        if (!msg?.scanType || msg.scanSaved) return
+        const mock = SCAN_MOCK_RESULTS[msg.scanType]
+        get().addRecord(msg.scanType, mock.summary)
+        if (msg.scanType === 'diet') get().completePathNode('node-2')
+        set((s) => ({
+          chatMessages: s.chatMessages.map((m) =>
+            m.id === messageId ? { ...m, scanSaved: true } : m,
+          ),
+        }))
+        get().showToast(msg.scanType === 'diet' ? '饮食记录已保存' : '用药记录已保存')
       },
 
       joinActivity: (id) =>

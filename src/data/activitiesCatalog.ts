@@ -2,6 +2,8 @@
  * C 端活动目录（与 B 端 familyDoctorOpsMock 活动 a1–a4 对齐）
  * 支持封面图/视频、详情页展示与报名
  */
+import { activityCoverPaths, normalizeActivityCatalog } from './activityCoverAssets'
+
 export type ActivityMediaType = 'image' | 'video'
 
 export interface ActivityMedia {
@@ -48,13 +50,13 @@ export const defaultActivityCatalog: ActivityCatalogItem[] = [
     cover: {
       type: 'video',
       url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
-      posterUrl: 'https://picsum.photos/seed/chronic-care/800/450',
+      posterUrl: activityCoverPaths.chronicCare,
       name: '慢病管理营预告',
     },
     replay: {
       type: 'video',
       url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
-      posterUrl: 'https://picsum.photos/seed/chronic-care/800/450',
+      posterUrl: activityCoverPaths.chronicCare,
       name: '活动回放',
     },
   },
@@ -71,11 +73,11 @@ export const defaultActivityCatalog: ActivityCatalogItem[] = [
     organizer: '运营中心',
     cover: {
       type: 'image',
-      url: 'https://picsum.photos/seed/women-health/800/450',
+      url: activityCoverPaths.womenHealth,
       name: '沙龙现场',
     },
     gallery: [
-      { type: 'image', url: 'https://picsum.photos/seed/women-health-2/800/450', name: '往期回顾' },
+      { type: 'image', url: activityCoverPaths.womenHealthGallery, name: '往期回顾' },
     ],
   },
   {
@@ -91,7 +93,7 @@ export const defaultActivityCatalog: ActivityCatalogItem[] = [
     organizer: '家庭医生一组',
     cover: {
       type: 'image',
-      url: 'https://picsum.photos/seed/tea-party/800/450',
+      url: activityCoverPaths.teaParty,
       name: '茶话会',
     },
   },
@@ -109,7 +111,7 @@ export const defaultActivityCatalog: ActivityCatalogItem[] = [
     cover: {
       type: 'video',
       url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
-      posterUrl: 'https://picsum.photos/seed/heart-health/800/450',
+      posterUrl: activityCoverPaths.heartHealth,
       name: '讲座预告',
     },
   },
@@ -121,7 +123,7 @@ export function loadActivityCatalog(): ActivityCatalogItem[] {
     const raw = localStorage.getItem(CATALOG_STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as ActivityCatalogItem[]
-      if (Array.isArray(parsed) && parsed.length) return parsed
+      if (Array.isArray(parsed) && parsed.length) return normalizeActivityCatalog(parsed)
     }
   } catch {
     /* use default */
@@ -132,7 +134,7 @@ export function loadActivityCatalog(): ActivityCatalogItem[] {
 /** B 端「同步 C 端」或运营导入时写入（Demo） */
 export function saveActivityCatalogOverride(items: ActivityCatalogItem[]) {
   if (typeof window === 'undefined') return
-  localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(items))
+  localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(normalizeActivityCatalog(items)))
 }
 
 /** B 端「同步至 C 端」导出 JSON 后，在 C 端活动专区粘贴导入 */

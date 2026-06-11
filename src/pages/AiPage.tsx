@@ -1,6 +1,10 @@
-import { Keyboard, Mic, MoreHorizontal, Sparkles, X } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { Camera, Keyboard, Mic, Sparkles, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AiChatActionSheet } from '../components/ai/AiChatActionSheet'
+import { AiChatScanOverlay } from '../components/ai/AiChatScanOverlay'
+import type { AiScanType } from '../components/ai/AiChatScanOverlay'
+import { AiChatScanResultBubble } from '../components/ai/AiChatScanResultBubble'
 import { IpPartnerAvatar } from '../components/ai/IpPartnerAvatar'
 import { MobileShell } from '../components/layout/MobileShell'
 import {
@@ -9,6 +13,7 @@ import {
   loadAiPartner,
   type AiPartnerProfile,
 } from '../data/aiPartner'
+import type { ChatMessage } from '../store/useAppStore'
 import { useAppStore, useRoleData } from '../store/useAppStore'
 
 export function AiPage() {
@@ -17,9 +22,14 @@ export function AiPage() {
   const data = useRoleData()
   const messages = useAppStore((s) => s.chatMessages)
   const sendChat = useAppStore((s) => s.sendChat)
+  const sendChatScanResult = useAppStore((s) => s.sendChatScanResult)
+  const saveChatScanResult = useAppStore((s) => s.saveChatScanResult)
   const [input, setInput] = useState('')
   const [keyboardMode, setKeyboardMode] = useState(false)
+  const [actionOpen, setActionOpen] = useState(false)
+  const [activeScan, setActiveScan] = useState<AiScanType | null>(null)
   const [partner, setPartner] = useState<AiPartnerProfile>(() => loadAiPartner())
+  const threadEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const sync = () => setPartner(loadAiPartner())
@@ -33,10 +43,19 @@ export function AiPage() {
     }
   }, [navigate])
 
-  const welcome = useMemo(
-    () => buildPartnerWelcome(partner, role),
-    [partner, role],
+  const welcome = useMemo(() => buildPartnerWelcome(partner, role), [partner, role])
+
+  const displayMessages: ChatMessage[] = useMemo(
+    () =>
+      messages.length === 0
+        ? [{ id: 'welcome', role: 'assistant', text: welcome, kind: 'text' }]
+        : messages,
+    [messages, welcome],
   )
+
+  useEffect(() => {
+    threadEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [displayMessages.length, activeScan])
 
   const send = () => {
     if (!input.trim()) return
@@ -44,10 +63,16 @@ export function AiPage() {
     setInput('')
   }
 
-  const displayMessages =
-    messages.length === 0
-      ? [{ role: 'assistant' as const, text: welcome }]
-      : messages
+  const handleScanPick = (type: AiScanType) => {
+    setActionOpen(false)
+    setActiveScan(type)
+  }
+
+  const handleScanFinished = useCallback(() => {
+    if (!activeScan) return
+    sendChatScanResult(activeScan)
+    setActiveScan(null)
+  }, [activeScan, sendChatScanResult])
 
   return (
     <MobileShell showTab={false} immersive mainClassName="ai-chat-main">
@@ -79,18 +104,50 @@ export function AiPage() {
               {p}
             </button>
           ))}
+          <button
+            type="button"
+            className="ai-chat-prompt-chip is-camera"
+            onClick={() => setActionOpen(true)}
+          >
+            拍照识别食物
+          </button>
         </div>
 
         <div className="ai-chat-thread">
-          {displayMessages.map((m, i) => (
-            <div key={i} className={`ai-chat-row ${m.role === 'user' ? 'is-user' : 'is-assistant'}`}>
-              <div className="ai-chat-bubble">{m.text}</div>
+          {displayMessages.map((m) => (
+            <div key={m.id} className={`ai-chat-row ${m.role === 'user' ? 'is-user' : 'is-assistant'}`}>
+              {m.kind === 'scan-result' ? (
+                <div className="ai-chat-assistant-stack">
+                  <div className="ai-chat-bubble">{m.text}</div>
+                  <AiChatScanResultBubble message={m} onSave={saveChatScanResult} />
+                </div>
+              ) : (
+                <div className={`ai-chat-bubble ${m.text.startsWith('[拍照]') ? 'is-photo' : ''}`}>
+                  {m.text.startsWith('[拍照]') ? (
+                    <>
+                      <span className="ai-chat-photo-tag">📷 图片</span>
+                      {m.text.replace('[拍照] ', '')}
+                    </>
+                  ) : (
+                    m.text
+                  )}
+                </div>
+              )}
             </div>
           ))}
+          <div ref={threadEndRef} />
         </div>
 
         {keyboardMode ? (
           <div className="ai-chat-keyboard-bar">
+            <button
+              type="button"
+              className="ai-chat-camera-inline"
+              aria-label="拍照识别"
+              onClick={() => setActionOpen(true)}
+            >
+              <Camera size={20} />
+            </button>
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -108,19 +165,17 @@ export function AiPage() {
             <button
               type="button"
               className="ai-chat-float-btn"
-              aria-label="更多"
-              onClick={() => navigate('/ai/partner/customize')}
+              aria-label="拍照识别"
+              onClick={() => setActionOpen(true)}
             >
-              <MoreHorizontal size={20} />
-              <span>更多</span>
+              <Camera size={20} />
+              <span>拍照</span>
             </button>
             <button
               type="button"
               className="ai-chat-mic-btn"
               aria-label="语音输入"
-              onClick={() => {
-                sendChat('帮我记录今天血压 135/86')
-              }}
+              onClick={() => sendChat('帮我记录今天血压 135/86')}
             >
               <Mic size={22} />
             </button>
@@ -136,6 +191,20 @@ export function AiPage() {
           </div>
         )}
       </div>
+
+      <AiChatActionSheet
+        open={actionOpen}
+        onClose={() => setActionOpen(false)}
+        onPick={handleScanPick}
+      />
+
+      {activeScan ? (
+        <AiChatScanOverlay
+          scanType={activeScan}
+          onClose={() => setActiveScan(null)}
+          onFinished={handleScanFinished}
+        />
+      ) : null}
     </MobileShell>
   )
 }

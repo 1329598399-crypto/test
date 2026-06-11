@@ -38,12 +38,15 @@ function Protected({ children }: { children: ReactNode }) {
   return <ProtectedRoute>{children}</ProtectedRoute>
 }
 
+/** 与 vite.config base 对齐（生产 /test/，开发 /） */
+const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 export default function App() {
   return (
     <DevicePreview>
       <OpsPublishListener />
       <ArchiveToast />
-      <BrowserRouter>
+      <BrowserRouter basename={routerBasename || undefined}>
         <Routes>
           <Route
             path="/login"
